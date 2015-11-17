@@ -33,18 +33,22 @@ class logstash::repo {
 
   case $::osfamily {
     'Debian': {
-      if !defined(Class['apt']) {
-        class { 'apt': }
-      }
+        include ::apt
+        Class['apt::update'] -> Package<| |>
 
-      apt::source { 'logstash':
-        location    => "http://packages.elasticsearch.org/logstash/${logstash::repo_version}/debian",
-        release     => 'stable',
-        repos       => 'main',
-        key         => '46095ACC8548582C1A2699A9D27D666CD88E42B4',
-        key_server  => 'pgp.mit.edu',
-        include_src => false,
-      }
+        apt::source { 'logstash':
+          location => "http://packages.elasticsearch.org/logstash/${logstash::repo_version}/debian",
+          release  => 'stable',
+          repos    => 'main',
+          key      => {
+            'id'     => '46095ACC8548582C1A2699A9D27D666CD88E42B4',
+            'source'  => 'http://packages.elasticsearch.org/GPG-KEY-elasticsearch'
+          },
+          include  => {
+            'src' => false,
+            'deb' => true
+          }
+        }
     }
     'RedHat': {
       yumrepo { 'logstash':
